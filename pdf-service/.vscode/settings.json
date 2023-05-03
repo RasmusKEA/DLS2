@@ -1,0 +1,9 @@
+{
+    "editor.tabCompletion": "on",
+    "diffEditor.codeLens": true,
+    "editor.codeActionsOnSave": {
+        //"source.organizeImports": true
+    },
+    "editor.formatOnPaste": true,
+    "editor.formatOnSave": true
+}
