@@ -4,7 +4,6 @@ import pkg from "body-parser";
 import cors from "cors";
 import { launch } from "puppeteer";
 import fs from "fs";
-import pk1 from "pdf-merger-js";
 import { uploadFile } from "./aws.js";
 import config from "./config/index.js";
 
@@ -13,8 +12,6 @@ const errorHandler = async (err, req, res, next) => {
 };
 
 const { urlencoded, json } = pkg;
-
-const PDFMerger = pk1;
 
 const app = express();
 const port = process.env.PORT || 5001;
