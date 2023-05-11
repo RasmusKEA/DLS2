@@ -26,7 +26,6 @@ app.get("/", async (req, res, next) => {
 
 app.post("/convert", async (req, res, next) => {
   try {
-    const merger = new PDFMerger();
     const { returnType, fileName, content } = req.body;
     if (returnType !== "link") {
       throw new Error("unrecoqnized return type. Can only be base64 or link");
@@ -45,6 +44,14 @@ app.post("/convert", async (req, res, next) => {
 
     // To reflect CSS used for screens instead of print
     await page.emulateMediaType("screen");
+
+    // Downlaod the PDF
+    const pdf = await page.pdf({
+      path: fileName,
+      margin: { top: "100px", right: "50px", bottom: "100px", left: "50px" },
+      printBackground: true,
+      format: "A4",
+    });
 
     const out = {};
     const buff = fs.readFileSync(fileName);
