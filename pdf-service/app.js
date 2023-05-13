@@ -1,57 +1,60 @@
 /* eslint-disable import/extensions */
-import express from 'express';
-import pkg from 'body-parser';
-import cors from 'cors';
-import { launch } from 'puppeteer';
-import fs from 'fs';
-import { uploadFile } from './aws.js';
-import config from './config/index.js';
+import express from "express";
+import pkg from "body-parser";
+import cors from "cors";
+import { launch } from "puppeteer";
+import fs from "fs";
+import { uploadFile } from "./aws.js";
+import config from "./config/index.js";
 
-const errorHandler = (err, req, res, next) => {
-  console.error(err); // Log the error for debugging
-  res.status(500).json({ error: 'Internal Server Error' });
+const errorHandler = async (err, req, res, next) => {
+  res.status(500).json(err);
 };
 
+// extract json
 const { urlencoded, json } = pkg;
+
 
 const app = express();
 const port = process.env.PORT || 5001;
 
+
 app.use(cors());
 app.use(urlencoded({ extended: true }));
-app.use(json({ limit: '50mb' }));
+app.use(json({ limit: "50mb" }));
 
-app.get('/', async (req, res) => {
-  res.end('root');
+app.get("/", async (req, res, next) => {
+  return res.end("root");
 });
 
-app.post('/convert', async (req, res, next) => {
+
+app.post("/convert", async (req, res, next) => {
   try {
     const { returnType, fileName, content } = req.body;
-    if (returnType !== 'link') {
-      throw new Error('Unrecognized return type. Can only be "link"');
+    if (returnType !== "link") {
+      throw new Error("unrecoqnized return type. Can only be base64 or link");
     }
-
+   
     const browser = await launch({
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
-      headless: true, // Use headless mode
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      headless: "new",
     });
 
-    // Create a new page
+    // Create page
     const page = await browser.newPage();
 
-    // Set the HTML content for the page
-    await page.setContent(content, { waitUntil: 'domcontentloaded' });
+    // Get HTML content from HTML file
+    await page.setContent(content, { waitUntil: "domcontentloaded" });
 
-    // Emulate media type to reflect CSS used for screens
-    await page.emulateMediaType('screen');
+    // To reflect CSS used for screens
+    await page.emulateMediaType("screen");
 
-    // Generate the PDF
+    
     const pdf = await page.pdf({
       path: fileName,
-      margin: { top: '100px', right: '50px', bottom: '100px', left: '50px' },
+      margin: { top: "100px", right: "50px", bottom: "100px", left: "50px" },
       printBackground: true,
-      format: 'A4',
+      format: "A4",
     });
 
     const out = {};
@@ -59,14 +62,18 @@ app.post('/convert', async (req, res, next) => {
     const upload = await uploadFile(buff, fileName);
     out.link = upload;
 
-    // Delete the temporary file
-    fs.unlinkSync(fileName);
+  
+    fs.unlink(`${process.cwd()}/${fileName}`, (err) => {
+      if (err) {
+        throw err;
+      }
+    });
 
+  
     await browser.close();
 
     return res.json(out);
   } catch (error) {
-    console.error(error); // Log the error for debugging
     return next(error);
   }
 });
