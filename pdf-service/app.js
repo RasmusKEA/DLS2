@@ -11,10 +11,13 @@ const errorHandler = async (err, req, res, next) => {
   res.status(500).json(err);
 };
 
+// extract json
 const { urlencoded, json } = pkg;
+
 
 const app = express();
 const port = process.env.PORT || 5001;
+
 
 app.use(cors());
 app.use(urlencoded({ extended: true }));
@@ -24,28 +27,29 @@ app.get("/", async (req, res, next) => {
   return res.end("root");
 });
 
+
 app.post("/convert", async (req, res, next) => {
   try {
     const { returnType, fileName, content } = req.body;
     if (returnType !== "link") {
       throw new Error("unrecoqnized return type. Can only be base64 or link");
     }
-
+   
     const browser = await launch({
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
       headless: "new",
     });
 
-    // Create a new page
+    // Create page
     const page = await browser.newPage();
 
     // Get HTML content from HTML file
     await page.setContent(content, { waitUntil: "domcontentloaded" });
 
-    // To reflect CSS used for screens instead of print
+    // To reflect CSS used for screens
     await page.emulateMediaType("screen");
 
-    // Downlaod the PDF
+    
     const pdf = await page.pdf({
       path: fileName,
       margin: { top: "100px", right: "50px", bottom: "100px", left: "50px" },
@@ -58,13 +62,14 @@ app.post("/convert", async (req, res, next) => {
     const upload = await uploadFile(buff, fileName);
     out.link = upload;
 
+  
     fs.unlink(`${process.cwd()}/${fileName}`, (err) => {
       if (err) {
         throw err;
       }
     });
 
-    // Close the browser instance
+  
     await browser.close();
 
     return res.json(out);
