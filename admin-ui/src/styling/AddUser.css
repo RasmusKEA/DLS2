@@ -1,0 +1,39 @@
+/* AddUserForm.css */
+
+.add-user-form {
+    width: 60%;
+    margin: 20px auto;
+  }
+  
+  .add-user-form .form-row {
+    margin-bottom: 10px;
+  }
+  
+  .add-user-form label {
+    display: block;
+    margin-bottom: 5px;
+  }
+  
+  .add-user-form input[type="text"],
+  .add-user-form input[type="password"],
+  .add-user-form input[type="email"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+  
+  .add-user-button {
+    padding: 10px 20px;
+    background-color: #0088FF;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .add-user-button:hover {
+    background-color: #0066CC;
+  }
+  

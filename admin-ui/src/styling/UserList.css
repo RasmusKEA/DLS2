@@ -1,0 +1,96 @@
+.user-list-container {
+    width: 60%;
+    margin: 0 auto;
+    max-height: 400px;
+    overflow-y: scroll;
+  }
+  
+  .user-list-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed; /* Added to set the table layout to fixed */
+  }
+  
+  .user-list-table th {
+    position: sticky;
+    top: 0;
+    background-color: #33AAFF;
+    color: white;
+    padding: 10px;
+    text-align: left; /* Adjusted to align the header text to the left */
+    z-index: 1; /* Added to ensure the sticky header appears above the table body */
+  }
+  
+  .user-list-table td {
+    padding: 10px;
+    text-align: left; /* Adjusted to align the cell content to the left */
+  }
+  
+  .user-list-table th:first-child,
+  .user-list-table td:first-child {
+    width: 5%; /* Adjusted the width to allocate appropriate space for the checkbox column */
+  }
+  
+  .user-list-table th:nth-child(2),
+  .user-list-table td:nth-child(2) {
+    width: 30%; /* Adjusted the width to allocate appropriate space for ID column */
+  }
+  
+  .user-list-table th:nth-child(3),
+  .user-list-table td:nth-child(3) {
+    width: 15%; /* Adjusted the width to allocate appropriate space for First name column */
+  }
+  
+  .user-list-table th:nth-child(4),
+  .user-list-table td:nth-child(4) {
+    width: 15%; /* Adjusted the width to allocate appropriate space for Last name column */
+  }
+  
+  .user-list-table th:nth-child(5),
+  .user-list-table td:nth-child(5) {
+    width: 25%; /* Adjusted the width to allocate appropriate space for Email column */
+  }
+  
+  .user-list-table tr:nth-child(even) {
+    background-color: #f2f2f2;
+  }
+  
+  .user-list-table tr:hover {
+    background-color: #ddd;
+  }
+  
+  .checkbox-cell {
+    padding: 10px;
+  }
+  
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+  }
+  
+  .checkbox-custom {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 1px solid #999;
+    border-radius: 3px;
+    background-color: #fff;
+    cursor: pointer;
+    margin-right: 8px;
+  }
+  
+  .checkbox-custom::after {
+    content: "";
+    display: block;
+    width: 100%;
+    height: 100%;
+    background-color: #33AAFF;
+    border-radius: 2px;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  
+  input[type="checkbox"]:checked + .checkbox-custom::after {
+    opacity: 1;
+  }
+  

@@ -1,9 +1,11 @@
 const express = require("express");
 const axios = require("axios");
 const bodyParser = require("body-parser");
+const cors = require("cors");
 
 const app = express();
 const port = 7001;
+app.use(cors());
 
 // Okta API configuration
 const OKTA_ORG_URL = "https://dev-42985177.okta.com";
@@ -47,6 +49,22 @@ app.post("/users", async (req, res) => {
     res
       .status(400)
       .json({ message: "Failed to create user", error: errorMessage });
+  }
+});
+
+app.get("/users", async (req, res) => {
+  try {
+    const response = await axios.get(`${OKTA_ORG_URL}/api/v1/users`, {
+      headers: {
+        Authorization: `SSWS ${OKTA_API_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    res.json(response.data);
+  } catch (error) {
+    console.error("Failed to get users from Okta:", error);
+    res.status(500).json({ error: "Failed to get users from Okta" });
   }
 });
 
