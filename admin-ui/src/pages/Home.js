@@ -18,7 +18,10 @@ function Home() {
 
   const fetchUsers = async () => {
     try {
-      setLoading(true); // Set loading to true before making the request
+      setLoading(true);
+      setUsers([]); // Reset users state to empty array
+      setFilteredUsers([]); // Reset filteredUsers state to empty array
+
       const response = await axios.get("http://localhost:8080/users");
       const fetchedUsers = response.data.hits.hits.map((hit) => ({
         id: hit._id,
@@ -30,9 +33,7 @@ function Home() {
     } catch (error) {
       console.error("Error fetching users:", error);
     } finally {
-      setTimeout(() => {
-        setLoading(false); // Set loading to false after the delay
-      }, 500); // Set loading to false after the request is completed
+      setLoading(false);
     }
   };
 
@@ -64,8 +65,17 @@ function Home() {
       });
 
       if (response.status === 200) {
-        // Refresh the user list after successful deletion
-        fetchUsers();
+        // Remove the deleted users from users state
+        const updatedUsers = users.filter(
+          (user) => !selectedUserIds.includes(user.id)
+        );
+        setUsers(updatedUsers);
+
+        // Remove the deleted users from filteredUsers state
+        const updatedFilteredUsers = filteredUsers.filter(
+          (user) => !selectedUserIds.includes(user.id)
+        );
+        setFilteredUsers(updatedFilteredUsers);
 
         // Clear the selected user IDs
         setSelectedUserIds([]);
