@@ -47,20 +47,22 @@ const LoginForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     const data = {
       returnType: 'link',
       fileName: 'example.pdf',
-      content: JSON.stringify(itemForms), // Send itemForms directly without JSON.stringify
+      content: JSON.stringify(itemForms), // Convert itemForms to a JSON string
     };
-
+  
     try {
-      const response = await axios.post('http://localhost:5001/convert', data);
-
+      const response = await axios.post('http://localhost:8080/convertPDF', data);
+  
       // Handle the response here
       console.log(response.data);
+      // Further processing of the response, such as updating the UI or redirecting
     } catch (error) {
       console.error('Error:', error);
+      // Handle the error appropriately, such as displaying an error message to the user
     }
   };
 

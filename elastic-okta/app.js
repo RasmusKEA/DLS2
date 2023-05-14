@@ -117,5 +117,33 @@ app.get("/users", async (req, res) => {
   res.send(result);
 });
 
+app.post("/convertPDF", async (req, res) => {
+  const { returnType, fileName, content } = req.body;
+
+  try {
+    const response = await axios.post(
+      "http://localhost:5001/convert",
+      {
+        returnType, 
+        fileName, 
+        content
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    // Handle the response from the /convert endpoint
+    console.log(response.data);
+    res.send(response.data); // or any other response data
+  } catch (error) {
+    // Handle the error appropriately
+    console.error('Error:', error);
+    res.status(500).send("PDF conversion request failed"); // or any other error response
+  }
+});
+
 app.use(securedRouter);
 app.listen(8080);
