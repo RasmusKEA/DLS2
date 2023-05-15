@@ -120,31 +120,35 @@ app.get("/users", async (req, res) => {
 
 // Route to generate a JWT token
 app.post("/auth", (req, res) => {
-  const payload = { sub: req.body.sub };
   let secretKey = "";
+  let roles = [];
   let redirectUrl = "";
   if (req.body.sub === "00u9jvsfuvFVNJKLn5d7") {
-    secretKey = "admin";
+    secretKey = "rasmus-secret";
     redirectUrl = "http://localhost:3001";
+    roles = ["customer", "admin"];
   } else {
-    secretKey = "customer";
+    secretKey = "rasmus-secret";
     redirectUrl = "http://localhost:3002";
+    roles = ["customer"];
   }
+
+  const payload = { sub: req.body.sub, roles };
 
   const token = jwt.sign(payload, secretKey, { expiresIn: "1h" });
 
-  res.json({ token, redirectUrl });
+  res.json({ token, redirectUrl, roles });
 });
 
-app.post("/verify-auth-admin", (req, res) => {
-  const { token, secret } = req.body;
+app.post("/verify-auth", (req, res) => {
+  const { token, secret, roles } = req.body;
 
-  if (secret !== "admin") {
+  if (secret !== "rasmus-secret") {
     return res.json({ valid: false });
   }
 
   try {
-    jwt.verify(token, "admin");
+    jwt.verify(token, "rasmus-secret");
     res.json({ valid: true });
   } catch (error) {
     res.json({ valid: false });
