@@ -154,12 +154,12 @@ app.post("/verify-auth-admin", (req, res) => {
 app.post("/verify-auth-customer", (req, res) => {
   const { token, secret } = req.body;
 
-  if (secret !== "admin") {
+  if (secret !== "customer") {
     return res.json({ valid: false });
   }
 
   try {
-    jwt.verify(token, "admin");
+    jwt.verify(token, "customer");
     res.json({ valid: true });
   } catch (error) {
     res.json({ valid: false });
@@ -168,6 +168,7 @@ app.post("/verify-auth-customer", (req, res) => {
 
 app.post("/convertPDF", async (req, res) => {
   const { returnType, fileName, content } = req.body;
+  console.log(returnType, fileName, content);
 
   try {
     const response = await axios.post(

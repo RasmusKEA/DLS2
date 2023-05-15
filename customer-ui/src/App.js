@@ -1,11 +1,11 @@
-import './App.css';
-import LoginForm from './components/LoginForm';
+import React from "react";
+import ProductForm from "./components/ProductForm";
 
 const App = () => {
   return (
     <div>
-      <h1>Login Form</h1>
-      <LoginForm />
+      <h1>Product Form</h1>
+      <ProductForm />
     </div>
   );
 };
