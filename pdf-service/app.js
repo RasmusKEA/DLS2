@@ -14,10 +14,8 @@ const errorHandler = async (err, req, res, next) => {
 // extract json
 const { urlencoded, json } = pkg;
 
-
 const app = express();
 const port = process.env.PORT || 5001;
-
 
 app.use(cors());
 app.use(urlencoded({ extended: true }));
@@ -27,49 +25,54 @@ app.get("/", async (req, res, next) => {
   return res.end("root");
 });
 
-
 app.post("/convert", async (req, res, next) => {
   try {
-    const { returnType, fileName, content } = req.body;
-    if (returnType !== "link") {
+    const { returnType, fileName, footer, header, content, mergePdf } =
+      req.body;
+    if (returnType !== "link" && returnType !== "base64") {
       throw new Error("unrecoqnized return type. Can only be base64 or link");
     }
-   
+
     const browser = await launch({
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
-      headless: "new",
     });
 
-    // Create page
+    // Create a new page
     const page = await browser.newPage();
 
     // Get HTML content from HTML file
     await page.setContent(content, { waitUntil: "domcontentloaded" });
 
-    // To reflect CSS used for screens
+    // To reflect CSS used for screens instead of print
     await page.emulateMediaType("screen");
 
-    
+    // Downlaod the PDF
     const pdf = await page.pdf({
       path: fileName,
       margin: { top: "100px", right: "50px", bottom: "100px", left: "50px" },
       printBackground: true,
       format: "A4",
+      displayHeaderFooter: !!(footer || header),
+      headerTemplate: header,
+      footerTemplate: footer,
     });
 
     const out = {};
-    const buff = fs.readFileSync(fileName);
-    const upload = await uploadFile(buff, fileName);
-    out.link = upload;
+    if (returnType === "link") {
+      const buff = fs.readFileSync(fileName);
+      const upload = await uploadFile(buff, fileName);
+      out.link = upload;
+    } else if (returnType === "base64") {
+      out.base64 = pdf.toString("base64");
+    }
 
-  
     fs.unlink(`${process.cwd()}/${fileName}`, (err) => {
       if (err) {
         throw err;
       }
     });
 
-  
+    // Close the browser instance
     await browser.close();
 
     return res.json(out);

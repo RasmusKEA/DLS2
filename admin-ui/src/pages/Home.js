@@ -9,6 +9,7 @@ function Home() {
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [selectedUserIds, setSelectedUserIds] = useState([]);
+  const [selectedOktaIds, setselectedOktaIds] = useState([]);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -47,11 +48,16 @@ function Home() {
     }
   };
 
-  const handleCheckboxChange = (userId) => {
+  const handleCheckboxChange = (userId, idOkta) => {
     const updatedSelectedUserIds = selectedUserIds.includes(userId)
       ? selectedUserIds.filter((id) => id !== userId)
       : [...selectedUserIds, userId];
     setSelectedUserIds(updatedSelectedUserIds);
+
+    const updatedselectedOktaIds = selectedOktaIds.includes(idOkta)
+      ? selectedOktaIds.filter((id) => id !== idOkta)
+      : [...selectedOktaIds, idOkta];
+    setselectedOktaIds(updatedselectedOktaIds);
   };
 
   const handleDeleteUser = async () => {
@@ -61,7 +67,7 @@ function Home() {
   const confirmDeleteUser = async () => {
     try {
       const response = await axios.delete("http://localhost:8080/remove-user", {
-        data: { userIds: selectedUserIds },
+        data: { userIds: selectedUserIds, oktaIds: selectedOktaIds },
       });
 
       if (response.status === 200) {
@@ -79,6 +85,7 @@ function Home() {
 
         // Clear the selected user IDs
         setSelectedUserIds([]);
+        setselectedOktaIds([]);
       } else {
         console.error("Error deleting users:", response.statusText);
       }
@@ -107,6 +114,7 @@ function Home() {
             <UserList
               users={filteredUsers.length > 0 ? filteredUsers : users}
               selectedUserIds={selectedUserIds}
+              selectedOktaIds={selectedOktaIds}
               onCheckboxChange={handleCheckboxChange}
             />
           )}

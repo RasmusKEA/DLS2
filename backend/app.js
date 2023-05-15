@@ -6,6 +6,8 @@ const elasticClient = require("./elastic-client");
 require("dotenv").config({ path: ".okta.env" });
 require("express-async-errors");
 const jwt = require("jsonwebtoken");
+const template = require("./pdf-templates/template.js");
+const { v4: uuidv4 } = require("uuid");
 
 const app = express();
 
@@ -78,7 +80,8 @@ app.post("/create-user", async (req, res) => {
 });
 
 app.delete("/remove-user", async (req, res) => {
-  const { userIds } = req.body;
+  const { userIds, oktaIds } = req.body;
+  console.log(req.body);
   try {
     const deletePromises = userIds.map(async (id) => {
       try {
@@ -93,6 +96,33 @@ app.delete("/remove-user", async (req, res) => {
     });
 
     await Promise.all(deletePromises);
+
+    // Delete users from Okta organization
+    const oktaDeletePromises = oktaIds.map(async (oktaId) => {
+      try {
+        const response = await axios.delete(
+          `${OKTA_ORG_URL}/api/v1/users/${oktaId}`,
+          {
+            headers: {
+              Authorization: `SSWS ${OKTA_API_TOKEN}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        if (response.status !== 204) {
+          console.error(
+            `Error deleting user with Okta ID ${oktaId}:`,
+            response.statusText
+          );
+          throw new Error(`Failed to delete user with Okta ID ${oktaId}`);
+        }
+      } catch (error) {
+        console.error(`Error deleting user with Okta ID ${oktaId}:`, error);
+        throw new Error(`Failed to delete user with Okta ID ${oktaId}`);
+      }
+    });
+
+    await Promise.all(oktaDeletePromises);
 
     res.sendStatus(200);
   } catch (error) {
@@ -171,16 +201,27 @@ app.post("/verify-auth-customer", (req, res) => {
 });
 
 app.post("/convertPDF", async (req, res) => {
-  const { returnType, fileName, content } = req.body;
-  console.log(returnType, fileName, content);
+  const { content } = req.body;
+  const fileName = uuidv4();
+
+  const totalPrice = content.reduce((accumulator, item) => {
+    const price = parseFloat(item.price); // Convert price to a number
+    if (!isNaN(price)) {
+      return accumulator + price;
+    } else {
+      return accumulator;
+    }
+  }, 0);
+
+  let pdf = template(content, totalPrice);
 
   try {
     const response = await axios.post(
       "http://localhost:5001/convert",
       {
-        returnType,
-        fileName,
-        content,
+        returnType: "link",
+        fileName: `${fileName}.pdf`,
+        content: pdf,
       },
       {
         headers: {

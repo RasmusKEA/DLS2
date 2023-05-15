@@ -1,7 +1,7 @@
 import React from "react";
 import "../styling/Buttons.css";
 
-function Buttons({ onAddUser, onDeleteUser }) {
+function Buttons({ onDeleteUser }) {
   return (
     <div className="user-list-buttons">
       <button className="delete-button" onClick={onDeleteUser}>

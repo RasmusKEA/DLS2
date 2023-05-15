@@ -30,9 +30,7 @@ const ProductForm = () => {
     // Example using axios:
     axios
       .post("http://localhost:8080/convertPDF", {
-        returnType: "link",
-        fileName: "testnow.pdf",
-        content: JSON.stringify(products),
+        content: products,
       })
       .then((response) => {
         console.log(response.data); // Handle the response as needed

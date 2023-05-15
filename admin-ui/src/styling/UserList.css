@@ -33,12 +33,12 @@
   
   .user-list-table th:nth-child(2),
   .user-list-table td:nth-child(2) {
-    width: 30%; /* Adjusted the width to allocate appropriate space for ID column */
+    width: 10%; /* Adjusted the width to allocate appropriate space for ID column */
   }
   
   .user-list-table th:nth-child(3),
   .user-list-table td:nth-child(3) {
-    width: 15%; /* Adjusted the width to allocate appropriate space for First name column */
+    width: 10%; /* Adjusted the width to allocate appropriate space for First name column */
   }
   
   .user-list-table th:nth-child(4),
