@@ -11,10 +11,48 @@ function Home() {
   const [selectedUserIds, setSelectedUserIds] = useState([]);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isTokenValid, setIsTokenValid] = useState(false);
 
   useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get("token");
+
+    if (token) {
+      localStorage.setItem("jwt", token);
+      verifyToken(token);
+    } else {
+      const storedToken = localStorage.getItem("jwt");
+      if (storedToken) {
+        verifyToken(storedToken);
+      } else {
+        // Handle the case when the token is not present
+      }
+    }
+
     fetchUsers();
   }, []);
+
+  const verifyToken = async (token) => {
+    try {
+      const response = await axios.post(
+        "http://localhost:8080/verify-auth-admin",
+        {
+          token,
+          secret: "admin",
+        }
+      );
+
+      if (response.data.valid) {
+        setIsTokenValid(true);
+      } else {
+        setIsTokenValid(false);
+        console.error("Token verification failed");
+      }
+    } catch (error) {
+      setIsTokenValid(false);
+      console.error("Token verification failed:", error);
+    }
+  };
 
   const fetchUsers = async () => {
     try {
@@ -96,28 +134,36 @@ function Home() {
 
   return (
     <div>
-      <SearchBar onSearch={handleSearch} />
-      <div style={{ height: "400px", overflow: "auto" }}>
-        {loading ? (
-          <div className="loader-container">
-            <div className="loader"></div>
+      {!isTokenValid ? (
+        <div>
+          <p>Invalid token. Please authenticate.</p>
+        </div>
+      ) : (
+        <div>
+          <SearchBar onSearch={handleSearch} />
+          <div style={{ height: "400px", overflow: "auto" }}>
+            {loading ? (
+              <div className="loader-container">
+                <div className="loader"></div>
+              </div>
+            ) : (
+              <UserList
+                users={filteredUsers.length > 0 ? filteredUsers : users}
+                selectedUserIds={selectedUserIds}
+                onCheckboxChange={handleCheckboxChange}
+              />
+            )}
           </div>
-        ) : (
-          <UserList
-            users={filteredUsers.length > 0 ? filteredUsers : users}
-            selectedUserIds={selectedUserIds}
-            onCheckboxChange={handleCheckboxChange}
-          />
-        )}
-      </div>
-      <DeleteButton onDeleteUser={handleDeleteUser} />
-      {showDeleteConfirmation && (
-        <div className="delete-confirmation">
-          <p>Are you sure you want to delete these users?</p>
-          <div>
-            <button onClick={confirmDeleteUser}>Confirm</button>
-            <button onClick={cancelDeleteUser}>Cancel</button>
-          </div>
+          <DeleteButton onDeleteUser={handleDeleteUser} />
+          {showDeleteConfirmation && (
+            <div className="delete-confirmation">
+              <p>Are you sure you want to delete these users?</p>
+              <div>
+                <button onClick={confirmDeleteUser}>Confirm</button>
+                <button onClick={cancelDeleteUser}>Cancel</button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

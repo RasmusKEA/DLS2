@@ -5,6 +5,7 @@ const bodyParser = require("body-parser");
 const elasticClient = require("./elastic-client");
 require("dotenv").config({ path: ".okta.env" });
 require("express-async-errors");
+const jwt = require("jsonwebtoken");
 
 const app = express();
 
@@ -117,5 +118,69 @@ app.get("/users", async (req, res) => {
   res.send(result);
 });
 
+app.post("/convert-pdf", async (req, res) => {
+  const { returnType, fileName, content } = req.body;
+  const response = await axios.post(
+    `http://localhost:5001/convert`,
+    {
+      returnType,
+      fileName,
+      content,
+    },
+    {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+});
+
+// Route to generate a JWT token
+app.post("/auth", (req, res) => {
+  const payload = { sub: req.body.sub };
+  let secretKey = "";
+  let redirectUrl = "";
+  if (req.body.sub === "00u9jvsfuvFVNJKLn5d7") {
+    secretKey = "admin";
+    redirectUrl = "http://localhost:3001";
+  } else {
+    secretKey = "customer";
+    redirectUrl = "http://localhost:3002";
+  }
+
+  const token = jwt.sign(payload, secretKey, { expiresIn: "1h" });
+
+  res.json({ token, redirectUrl });
+});
+
+app.post("/verify-auth-admin", (req, res) => {
+  const { token, secret } = req.body;
+
+  if (secret !== "admin") {
+    return res.json({ valid: false });
+  }
+
+  try {
+    jwt.verify(token, "admin");
+    res.json({ valid: true });
+  } catch (error) {
+    res.json({ valid: false });
+  }
+});
+
+app.post("/verify-auth-customer", (req, res) => {
+  const { token, secret } = req.body;
+
+  if (secret !== "admin") {
+    return res.json({ valid: false });
+  }
+
+  try {
+    jwt.verify(token, "admin");
+    res.json({ valid: true });
+  } catch (error) {
+    res.json({ valid: false });
+  }
+});
 app.use(securedRouter);
 app.listen(8080);
