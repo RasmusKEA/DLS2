@@ -19,7 +19,7 @@ const OKTA_API_TOKEN = "00_EUjycaGe20uQmAgHP8mV1OO0Gkt-boQFeClJ68t";
 
 const securedRouter = express.Router();
 
-// Create user route
+
 app.post("/create-user", async (req, res) => {
   console.log(req.body);
   const { username, password, email, firstName, lastName } = req.body;
@@ -41,7 +41,7 @@ app.post("/create-user", async (req, res) => {
       },
       {
         headers: {
-          Authorization: `SSWS ${OKTA_API_TOKEN}`,
+          Authorization: `SSWS ${OKTA_API_TOKEN}`, // Corrected line
           "Content-Type": "application/json",
         },
       }
@@ -57,14 +57,28 @@ app.post("/create-user", async (req, res) => {
     console.log(response.status);
 
     if (response.status === 200) {
+      // Assuming you have an instance of the ElasticSearch client named elasticClient
       await elasticClient
         .index({
           index: "users",
-          document: profile,
+          body: profile,
         })
-        .then((res) => {
-          console.log(res);
+        .then((response) => {
+          console.log(response);
         });
+
+      // Call the send-mail endpoint
+      const sendMailResponse = await axios.post(
+        "http://localhost:6001/send-mail",
+        {
+          to: email,
+          subject: "Your Login Credentials",
+          email: email,
+          password: password,
+        }
+      );
+
+      console.log(sendMailResponse.data);
     }
 
     res.status(201).json({
@@ -73,9 +87,7 @@ app.post("/create-user", async (req, res) => {
     });
   } catch (error) {
     const errorMessage = error.response.data.errorCauses[0].errorSummary;
-    res
-      .status(400)
-      .json({ message: "Failed to create user", error: errorMessage });
+    res.status(400).json({ message: "Failed to create user", error: errorMessage });
   }
 });
 
