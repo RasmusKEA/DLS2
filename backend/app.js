@@ -8,6 +8,7 @@ require("express-async-errors");
 const jwt = require("jsonwebtoken");
 const template = require("./pdf-templates/template.js");
 const { v4: uuidv4 } = require("uuid");
+const { setupRabbitMQ, queueName, exchangeName } = require("./rabbitmq");
 
 const app = express();
 
@@ -18,7 +19,6 @@ const OKTA_ORG_URL = "https://dev-42985177.okta.com";
 const OKTA_API_TOKEN = "00_EUjycaGe20uQmAgHP8mV1OO0Gkt-boQFeClJ68t";
 
 const securedRouter = express.Router();
-
 
 app.post("/create-user", async (req, res) => {
   console.log(req.body);
@@ -87,7 +87,9 @@ app.post("/create-user", async (req, res) => {
     });
   } catch (error) {
     const errorMessage = error.response.data.errorCauses[0].errorSummary;
-    res.status(400).json({ message: "Failed to create user", error: errorMessage });
+    res
+      .status(400)
+      .json({ message: "Failed to create user", error: errorMessage });
   }
 });
 
@@ -213,7 +215,71 @@ app.post("/verify-auth-customer", (req, res) => {
 });
 
 app.post("/convertPDF", async (req, res) => {
-  const { content } = req.body;
+  const { content, email } = req.body;
+  const fileName = uuidv4();
+
+  const totalPrice = content.reduce((accumulator, item) => {
+    const price = parseFloat(item.price); // Convert price to a number
+    if (!isNaN(price)) {
+      return accumulator + price;
+    } else {
+      return accumulator;
+    }
+  }, 0);
+
+  let pdf = template(content, totalPrice);
+
+  try {
+    // Set up RabbitMQ connection and channel
+    const { connection, channel } = await setupRabbitMQ();
+
+    // Ensure that the queue exists, otherwise create it
+    await channel.assertQueue(queueName, { durable: true });
+
+    const message = {
+      returnType: "link",
+      fileName: `${fileName}.pdf`,
+      content: pdf,
+      email: email,
+    };
+
+    // Publish the message to RabbitMQ
+    await channel.sendToQueue(queueName, Buffer.from(JSON.stringify(message)), {
+      persistent: true,
+    });
+
+    axios
+      .post("http://localhost:8001/graphql", {
+        query: `
+      mutation {
+        createInvoice(email: "${email}", link: "${
+          "https://rr-pdf-bucket.s3.amazonaws.com/" + fileName + ".pdf"
+        }") {
+          email
+          link
+        }
+      }
+    `,
+      })
+      .then((res) => {
+        console.log(res);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+
+    // Handle the response from the /convert endpoint
+    console.log("Message published to RabbitMQ");
+    res.status(200).end(); // or any other success response
+  } catch (error) {
+    // Handle the error appropriately
+    console.error("Error:", error);
+    res.status(500).send("PDF conversion request failed"); // or any other error response
+  }
+});
+
+app.post("/convertPDFold", async (req, res) => {
+  const { content, email } = req.body;
   const fileName = uuidv4();
 
   const totalPrice = content.reduce((accumulator, item) => {
@@ -242,8 +308,26 @@ app.post("/convertPDF", async (req, res) => {
       }
     );
 
+    axios
+      .post("http://localhost:8001/graphql", {
+        query: `
+      mutation {
+        createInvoice(email: "${email}", link: "${response.data.link}") {
+          email
+          link
+        }
+      }
+    `,
+      })
+      .then((res) => {
+        console.log(res);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+
     // Handle the response from the /convert endpoint
-    console.log(response.data);
+    console.log(response.data.link);
     res.send(response.data); // or any other response data
   } catch (error) {
     // Handle the error appropriately

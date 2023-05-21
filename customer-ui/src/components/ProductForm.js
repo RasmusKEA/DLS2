@@ -3,9 +3,7 @@ import axios from "axios";
 import "../styling/ProductForm.css";
 
 const ProductForm = () => {
-  const [products, setProducts] = useState([
-    { id: "", name: "", quantity: "", price: "" },
-  ]);
+  const [products, setProducts] = useState([{ id: "", name: "", price: "" }]);
 
   const handleChange = (index, field, value) => {
     const updatedProducts = [...products];
@@ -14,7 +12,7 @@ const ProductForm = () => {
   };
 
   const addProduct = () => {
-    setProducts([...products, { id: "", name: "", quantity: "", price: "" }]);
+    setProducts([...products, { id: "", name: "", price: "" }]);
   };
 
   const deleteProduct = (index) => {
@@ -31,6 +29,7 @@ const ProductForm = () => {
     axios
       .post("http://localhost:8080/convertPDF", {
         content: products,
+        email: localStorage.getItem("email"),
       })
       .then((response) => {
         console.log(response.data); // Handle the response as needed
@@ -55,12 +54,6 @@ const ProductForm = () => {
             placeholder="Name"
             value={product.name}
             onChange={(e) => handleChange(index, "name", e.target.value)}
-          />
-          <input
-            type="text"
-            placeholder="Quantity"
-            value={product.quantity}
-            onChange={(e) => handleChange(index, "quantity", e.target.value)}
           />
           <input
             type="text"

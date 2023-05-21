@@ -1,0 +1,29 @@
+.invoice-container {
+    margin-top: 2%;
+    display: flex;
+    justify-content: center;
+    height: 100vh;
+    align-items: flex-start;
+  }
+  
+  
+  .invoice-table {
+    width: 60%;
+    border-collapse: collapse;
+  }
+  
+  .invoice-table th,
+  .invoice-table td {
+    padding: 8px;
+    border: 1px solid #ddd;
+  }
+  
+  .invoice-table th {
+    background-color: #33aaff;
+    color: #fff;
+  }
+  
+  .invoice-table tbody tr:nth-child(even) {
+    background-color: #f2f2f2;
+  }
+  
