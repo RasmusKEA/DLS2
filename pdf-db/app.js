@@ -112,14 +112,30 @@ const root = {
   deleteInvoice: (args) => {
     const { id } = args;
     return new Promise((resolve, reject) => {
-      connection.query("DELETE FROM invoices WHERE id = ?", [id], (error) => {
-        if (error) reject(error);
-        resolve({
-          id,
-          email: null,
-          link: null,
-        });
-      });
+      connection.query(
+        "SELECT email, link FROM invoices WHERE id = ?",
+        [id],
+        (error, results) => {
+          if (error) reject(error);
+          if (results.length === 0) {
+            reject(new Error(`Invoice with id ${id} does not exist`));
+          } else {
+            const deletedInvoice = results[0];
+            connection.query(
+              "UPDATE invoices SET deleted = 1 WHERE id = ?",
+              [id],
+              (error) => {
+                if (error) reject(error);
+                resolve({
+                  id,
+                  email: deletedInvoice.email,
+                  link: deletedInvoice.link,
+                });
+              }
+            );
+          }
+        }
+      );
     });
   },
 };
