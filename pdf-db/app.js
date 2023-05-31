@@ -121,18 +121,48 @@ const root = {
             reject(new Error(`Invoice with id ${id} does not exist`));
           } else {
             const deletedInvoice = results[0];
-            connection.query(
-              "UPDATE invoices SET deleted = 1 WHERE id = ?",
-              [id],
-              (error) => {
-                if (error) reject(error);
-                resolve({
-                  id,
-                  email: deletedInvoice.email,
-                  link: deletedInvoice.link,
-                });
-              }
-            );
+            connection.beginTransaction((transactionError) => {
+              if (transactionError) reject(transactionError);
+
+              connection.query(
+                "INSERT INTO invoices_deleted (id, email, link) VALUES (?, ?, ?)",
+                [id, deletedInvoice.email, deletedInvoice.link],
+                (insertError) => {
+                  if (insertError) {
+                    connection.rollback(() => {
+                      reject(insertError);
+                    });
+                  } else {
+                    connection.query(
+                      "DELETE FROM invoices WHERE id = ?",
+                      [id],
+                      (deleteError) => {
+                        if (deleteError) {
+                          connection.rollback(() => {
+                            reject(deleteError);
+                          });
+                        } else {
+                          connection.commit((commitError) => {
+                            if (commitError) {
+                              connection.rollback(() => {
+                                reject(commitError);
+                              });
+                            } else {
+                              resolve({
+                                id,
+                                email: deletedInvoice.email,
+                                link: deletedInvoice.link,
+                                message: "Invoice deleted successfully",
+                              });
+                            }
+                          });
+                        }
+                      }
+                    );
+                  }
+                }
+              );
+            });
           }
         }
       );
