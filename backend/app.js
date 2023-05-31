@@ -517,7 +517,7 @@ app.post("/convertPDF", async (req, res) => {
     };
 
     // Publish the message to RabbitMQ
-    await channel.sendToQueue(queueName, Buffer.from(JSON.stringify(message)), {
+    channel.sendToQueue(queueName, Buffer.from(JSON.stringify(message)), {
       persistent: true,
     });
 
@@ -533,9 +533,6 @@ app.post("/convertPDF", async (req, res) => {
         }
       }
     `,
-      })
-      .then((res) => {
-        console.log(res);
       })
       .catch((error) => {
         console.error(error);

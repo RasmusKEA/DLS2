@@ -30,6 +30,7 @@ app.get("/", async (req, res, next) => {
 async function processMessage(message) {
   try {
     const { content } = message;
+    console.log("Message received", message);
 
     // Process the message data as needed
     const {

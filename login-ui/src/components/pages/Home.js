@@ -32,7 +32,7 @@ const Home = () => {
           );
           const { token, redirectUrl, roles } = response.data;
           // Append the JWT token as a query parameter in the redirect URL
-          const urlWithToken = `${redirectUrl}?token=${token}&mail=${userInfo.email}`;
+          const urlWithToken = `${redirectUrl}?token=${token}&email=${userInfo.email}`;
 
           const adminUrl = new URL("http://localhost:3001/");
           adminUrl.searchParams.append("token", token);

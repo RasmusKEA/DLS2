@@ -51,7 +51,7 @@ const root = {
     const { email } = args;
     return new Promise((resolve, reject) => {
       connection.query(
-        "SELECT link FROM invoices WHERE email = ?",
+        "SELECT link FROM invoices WHERE email = ? AND deleted = 0",
         [email],
         (error, results) => {
           if (error) reject(error);

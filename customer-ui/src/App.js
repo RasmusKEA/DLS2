@@ -10,7 +10,7 @@ const App = () => {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get("token");
-    const email = urlParams.get("mail");
+    const email = urlParams.get("email");
 
     if (token) {
       localStorage.setItem("jwt", token);
